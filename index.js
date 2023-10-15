@@ -24,6 +24,7 @@ async function run() {
     await client.connect();
     const database = client.db("coffeDb");
     const coffeColletion = database.collection("coffes");
+    const userCollection = database.collection("users");
 
     app.get("/coffes", async (req, res) => {
       const cursor = coffeColletion.find();
@@ -72,6 +73,39 @@ async function run() {
     app.post("/coffes", async (req, res) => {
       const coffe = req.body;
       const result = await coffeColletion.insertOne(coffe);
+      res.send(result);
+    });
+
+    // User Related Api
+    app.get("/user", async (req, res) => {
+      const query = userCollection.find();
+      const result = await query.toArray();
+      res.send(result);
+    });
+
+    app.post("/user", async (req, res) => {
+      const user = req.body;
+      const result = await userCollection.insertOne(user);
+      res.send(result);
+    });
+
+    app.patch(`/user`, async (req, res) => {
+      const user = req.body;
+      const filter = { email: user.email };
+      const updateUser = {
+        $set: {
+          email: user.email,
+          lastSignInTime: user.lastSignInTime,
+        },
+      };
+      const result = await userCollection.updateOne(filter, updateUser);
+      res.send(result);
+    });
+
+    app.delete("/user/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await userCollection.deleteOne(query);
       res.send(result);
     });
 
